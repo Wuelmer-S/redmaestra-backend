@@ -15,13 +15,31 @@ export class UsersService {
     return this.usersRepository.findOne({ where: { email } });
   }
 
-  async createUser(email: string, password: string, role: string): Promise<User> {
+  async findAll(): Promise<User[]> {
+    return this.usersRepository.find();
+  }
+
+  async findMaestros(): Promise<User[]> {
+    return this.usersRepository.find({ where: { role: 'maestro' } });
+  }
+
+  async createUser(
+    email: string,
+    password: string,
+    role: string,
+    extra?: Partial<User>,
+  ): Promise<User> {
     const hashed = await bcrypt.hash(password, 10);
     const user = this.usersRepository.create({
       email,
       password: hashed,
       role,
+      ...extra,
     });
     return this.usersRepository.save(user);
+  }
+
+  async count(): Promise<number> {
+    return this.usersRepository.count();
   }
 }
