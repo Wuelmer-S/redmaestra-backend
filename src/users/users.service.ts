@@ -15,13 +15,82 @@ export class UsersService {
     return this.usersRepository.findOne({ where: { email } });
   }
 
-  async createUser(email: string, password: string, role: string): Promise<User> {
+  async findById(id: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { id } });
+  }
+
+  async findAll(): Promise<User[]> {
+    return this.usersRepository.find();
+  }
+
+ async findMaestros(): Promise<Partial<User>[]> {
+  return this.usersRepository.find({
+    where: { role: 'maestro' },
+    select: ['id', 'nombre', 'email', 'especialidad', 'calificacion', 'disponible', 'latitud', 'longitud'],
+    });
+  }
+
+  async findMaestrosCercanos(
+    lat: number,
+    lng: number,
+    radioKm: number,
+  ): Promise<User[]> {
+    const maestros = await this.usersRepository.find({
+      where: { role: 'maestro', disponible: true },
+      select: ['id', 'nombre', 'email', 'especialidad', 'calificacion', 'disponible', 'latitud', 'longitud'],
+    });
+
+    return maestros.filter((m) => {
+      if (!m.latitud || !m.longitud) return false;
+      const distancia = this.calcularDistancia(lat, lng, m.latitud, m.longitud);
+      return distancia <= radioKm;
+    });
+  }
+
+  private calcularDistancia(
+    lat1: number,
+    lng1: number,
+    lat2: number,
+    lng2: number,
+  ): number {
+    const R = 6371;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLng = ((lng2 - lng1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLng / 2) *
+        Math.sin(dLng / 2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+
+  async updateUbicacion(
+    id: string,
+    latitud: number,
+    longitud: number,
+  ): Promise<User> {
+    await this.usersRepository.update(id, { latitud, longitud });
+    return this.findById(id) as Promise<User>;
+  }
+
+  async createUser(
+    email: string,
+    password: string,
+    role: string,
+    extra?: Partial<User>,
+  ): Promise<User> {
     const hashed = await bcrypt.hash(password, 10);
     const user = this.usersRepository.create({
       email,
       password: hashed,
       role,
+      ...extra,
     });
     return this.usersRepository.save(user);
+  }
+
+  async count(): Promise<number> {
+    return this.usersRepository.count();
   }
 }
