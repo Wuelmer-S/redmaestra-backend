@@ -14,16 +14,24 @@ export class LocationController {
         userId: '84d6f367-b1f7-4044-ac64-f5058a1ea80c',
         latitud: -33.4569,
         longitud: -70.6483,
+        disponible: true,
       },
     },
   })
   updateUbicacion(
-    @Body() body: { userId: string; latitud: number; longitud: number },
+    @Body()
+    body: {
+      userId: string;
+      latitud: number;
+      longitud: number;
+      disponible?: boolean;
+    },
   ) {
     return this.usersService.updateUbicacion(
       body.userId,
       body.latitud,
       body.longitud,
+      body.disponible,
     );
   }
 }

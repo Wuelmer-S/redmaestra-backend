@@ -69,8 +69,11 @@ export class UsersService {
     id: string,
     latitud: number,
     longitud: number,
+    disponible?: boolean,
   ): Promise<User> {
-    await this.usersRepository.update(id, { latitud, longitud });
+    const data: Partial<User> = { latitud, longitud };
+    if (disponible !== undefined) data.disponible = disponible;
+    await this.usersRepository.update(id, data);
     return this.findById(id) as Promise<User>;
   }
 
