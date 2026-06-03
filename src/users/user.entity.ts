@@ -20,6 +20,9 @@ export class User {
   @Column({ nullable: true })
   especialidad: string;
 
+  @Column({ nullable: true })
+  descripcion: string;
+
   @Column({ type: 'float', default: 0 })
   calificacion: number;
 
@@ -31,6 +34,15 @@ export class User {
 
   @Column({ type: 'float', nullable: true })
   longitud: number;
+
+  @Column({ nullable: true, unique: true })
+  run: string;
+
+  @Column({ default: 'pending', enum: ['pending', 'verified', 'rejected'] })
+  kycStatus: string;
+
+  @Column({ type: 'jsonb', nullable: true })
+  kycData: any;
 
   @CreateDateColumn()
   createdAt: Date;

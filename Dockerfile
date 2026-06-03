@@ -1,5 +1,16 @@
 # Build stage
-FROM node:22-alpine AS build
+FROM node:22-slim AS build
+
+# Install build dependencies for canvas and other native modules
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libcairo2-dev \
+    libpango1.0-dev \
+    libjpeg-dev \
+    libgif-dev \
+    librsvg2-dev \
+    python3 \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -7,7 +18,7 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 
 # Install dependencies
-RUN npm ci
+RUN npm install
 
 # Copy source code
 COPY . .
@@ -16,7 +27,16 @@ COPY . .
 RUN npm run build
 
 # Production stage
-FROM node:22-alpine
+FROM node:22-slim
+
+# Install runtime dependencies for canvas and tensorflow
+RUN apt-get update && apt-get install -y \
+    libcairo2 \
+    libjpeg62-turbo \
+    libpango-1.0-0 \
+    libgif7 \
+    librsvg2-2 \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -24,6 +44,7 @@ WORKDIR /app
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/package.json ./package.json
+COPY --from=build /app/models ./models
 
 # Expose port
 EXPOSE 3000

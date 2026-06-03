@@ -28,12 +28,15 @@
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/swagger": "^11.2.7",
     "@nestjs/typeorm": "^11.0.0",
+    "@vladmandic/face-api": "^1.7.15",
     "bcrypt": "^6.0.0",
+    "canvas": "^3.2.3",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.20.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "tesseract.js": "^7.0.0",
     "typeorm": "^0.3.28"
   },
   "devDependencies": {
