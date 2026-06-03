@@ -10,9 +10,19 @@ RUN apt-get update && apt-get install -y \
     libgif-dev \
     librsvg2-dev \
     python3 \
+    wget \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
+
+# Download face-api models
+RUN mkdir -p models && \
+    wget -q -P ./models https://raw.githubusercontent.com/vladmandic/face-api/master/model/ssd_mobilenetv1_model-weights_manifest.json && \
+    wget -q -P ./models https://raw.githubusercontent.com/vladmandic/face-api/master/model/ssd_mobilenetv1_model.bin && \
+    wget -q -P ./models https://raw.githubusercontent.com/vladmandic/face-api/master/model/face_landmark_68_model-weights_manifest.json && \
+    wget -q -P ./models https://raw.githubusercontent.com/vladmandic/face-api/master/model/face_landmark_68_model.bin && \
+    wget -q -P ./models https://raw.githubusercontent.com/vladmandic/face-api/master/model/face_recognition_model-weights_manifest.json && \
+    wget -q -P ./models https://raw.githubusercontent.com/vladmandic/face-api/master/model/face_recognition_model.bin
 
 # Copy package files
 COPY package.json package-lock.json* ./

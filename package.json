@@ -28,6 +28,7 @@
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/swagger": "^11.2.7",
     "@nestjs/typeorm": "^11.0.0",
+    "@tensorflow/tfjs-node": "^4.22.0",
     "@vladmandic/face-api": "^1.7.15",
     "bcrypt": "^6.0.0",
     "canvas": "^3.2.3",
