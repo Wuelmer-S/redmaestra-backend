@@ -1,4 +1,4 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException, OnModuleInit } from '@nestjs/common';
 import * as faceapi from '@vladmandic/face-api/dist/face-api.node.js';
 import { Canvas, Image, ImageData, loadImage } from 'canvas';
 import { UsersService } from '../../../users/users.service';
@@ -8,11 +8,16 @@ import { UsersService } from '../../../users/users.service';
 faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
 
 @Injectable()
-export class ProcessIdentityCardUseCase {
+export class ProcessIdentityCardUseCase implements OnModuleInit {
   private readonly logger = new Logger(ProcessIdentityCardUseCase.name);
   private modelsLoaded = false;
 
   constructor(private readonly usersService: UsersService) {}
+
+  async onModuleInit() {
+    // Cargar modelos al arrancar el servidor (Eager loading)
+    await this.loadModels();
+  }
 
   private async loadModels() {
     if (this.modelsLoaded) return;
@@ -52,18 +57,26 @@ export class ProcessIdentityCardUseCase {
       // @ts-ignore
       const idFace = await faceapi.detectSingleFace(idImg).withFaceLandmarks().withFaceDescriptor();
       if (!idFace) {
-        throw new BadRequestException('No se pudo detectar un rostro claro en la imagen del carnet.');
+        this.logger.warn('Fallo: No se detectó rostro en el carnet.');
+        throw new BadRequestException('No se pudo detectar un rostro claro en la imagen del carnet. Intente tomar una foto con mejor iluminación o sin reflejos.');
       }
 
       // @ts-ignore
       const selfieFace = await faceapi.detectSingleFace(selfieImg).withFaceLandmarks().withFaceDescriptor();
       if (!selfieFace) {
-        throw new BadRequestException('No se pudo detectar un rostro claro en la selfie proporcionada.');
+        this.logger.warn('Fallo: No se detectó rostro en la selfie.');
+        throw new BadRequestException('No se pudo detectar un rostro claro en la selfie proporcionada. Asegúrese de mirar directamente a la cámara.');
       }
 
       const distance = faceapi.euclideanDistance(idFace.descriptor, selfieFace.descriptor);
-      const threshold = 0.6;
+      
+      // Relajamos el umbral (0.6 a 0.75).
+      // En pruebas del mundo real con fotos de carnets escaneados vs selfies de baja resolución, 
+      // 0.6 suele ser demasiado estricto. Un valor de 0.7 - 0.75 es más seguro para evitar falsos negativos.
+      const threshold = 0.75; 
       const isMatch = distance < threshold;
+      
+      this.logger.log(`Comparación facial completada. Distancia: ${distance}. Umbral: ${threshold}. ¿Coinciden?: ${isMatch}`);
 
       return {
         success: isMatch,

@@ -21,7 +21,7 @@ export class ChatService {
     private usersService: UsersService,
   ) {}
 
-  async createConversation(currentUser: JwtPayload, maestroId: string) {
+  async createConversation(currentUser: any, maestroId: string) {
     if (currentUser.role !== 'cliente') {
       throw new ForbiddenException('Solo los clientes pueden iniciar conversaciones');
     }
@@ -37,7 +37,7 @@ export class ChatService {
 
     const existing = await this.conversationsRepository.findOne({
       where: {
-        clienteId: currentUser.sub,
+        clienteId: currentUser.id,
         maestroId,
         status: 'active',
       },
@@ -48,20 +48,20 @@ export class ChatService {
     }
 
     const conversation = this.conversationsRepository.create({
-      clienteId: currentUser.sub,
+      clienteId: currentUser.id,
       maestroId,
-      createdById: currentUser.sub,
+      createdById: currentUser.id,
       status: 'active',
     });
 
     return this.conversationsRepository.save(conversation);
   }
 
-  async findMyConversations(currentUser: JwtPayload) {
+  async findMyConversations(currentUser: any) {
     const where =
       currentUser.role === 'maestro'
-        ? { maestroId: currentUser.sub }
-        : { clienteId: currentUser.sub };
+        ? { maestroId: currentUser.id }
+        : { clienteId: currentUser.id };
 
     const conversations = await this.conversationsRepository.find({
       where,
@@ -74,12 +74,12 @@ export class ChatService {
     );
   }
 
-  async findConversationForUser(id: string, currentUser: JwtPayload) {
+  async findConversationForUser(id: string, currentUser: any) {
     const conversation = await this.getConversationEntityForUser(id, currentUser);
     return this.toConversationResponse(conversation);
   }
 
-  private async getConversationEntityForUser(id: string, currentUser: JwtPayload) {
+  private async getConversationEntityForUser(id: string, currentUser: any) {
     const conversation = await this.conversationsRepository.findOne({
       where: { id },
       relations: ['cliente', 'maestro'],
@@ -95,7 +95,7 @@ export class ChatService {
 
   async createMessage(
     conversationId: string,
-    currentUser: JwtPayload,
+    currentUser: any,
     content: string,
   ) {
     const conversation = await this.getConversationEntityForUser(
@@ -113,7 +113,7 @@ export class ChatService {
 
     const message = this.messagesRepository.create({
       conversationId: conversation.id,
-      senderId: currentUser.sub,
+      senderId: currentUser.id,
       content: content.trim(),
     });
 
@@ -125,7 +125,7 @@ export class ChatService {
     return saved;
   }
 
-  async findMessages(conversationId: string, currentUser: JwtPayload) {
+  async findMessages(conversationId: string, currentUser: any) {
     await this.getConversationEntityForUser(conversationId, currentUser);
 
     const messages = await this.messagesRepository.find({
@@ -137,7 +137,7 @@ export class ChatService {
     return messages.map((message) => this.toMessageResponse(message));
   }
 
-  async closeConversation(id: string, currentUser: JwtPayload) {
+  async closeConversation(id: string, currentUser: any) {
     const conversation = await this.getConversationEntityForUser(id, currentUser);
 
     await this.conversationsRepository.update(id, { status: 'closed' });
@@ -147,10 +147,10 @@ export class ChatService {
     });
   }
 
-  private ensureParticipant(conversation: Conversation, currentUser: JwtPayload) {
+  private ensureParticipant(conversation: Conversation, currentUser: any) {
     const isParticipant =
-      conversation.clienteId === currentUser.sub ||
-      conversation.maestroId === currentUser.sub;
+      conversation.clienteId === currentUser.id ||
+      conversation.maestroId === currentUser.id;
 
     if (!isParticipant) {
       throw new ForbiddenException('No perteneces a esta conversacion');
