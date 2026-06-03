@@ -8,6 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtPayload } from '../auth/jwt-payload.interface';
 import { UsersService } from '../users/users.service';
+import { ChatGateway } from './chat.gateway';
 import { Conversation } from './conversation.entity';
 import { Message } from './message.entity';
 
@@ -19,6 +20,7 @@ export class ChatService {
     @InjectRepository(Message)
     private messagesRepository: Repository<Message>,
     private usersService: UsersService,
+    private chatGateway: ChatGateway,
   ) {}
 
   async createConversation(currentUser: any, maestroId: string) {
@@ -141,10 +143,17 @@ export class ChatService {
     const conversation = await this.getConversationEntityForUser(id, currentUser);
 
     await this.conversationsRepository.update(id, { status: 'closed' });
-    return this.toConversationResponse({
+    const updated = this.toConversationResponse({
       ...conversation,
       status: 'closed',
     });
+    const otherUserId =
+      conversation.clienteId === currentUser.id
+        ? conversation.maestroId
+        : conversation.clienteId;
+    this.chatGateway.notifyConversationUpdated(otherUserId, updated);
+    this.chatGateway.notifyConversationUpdated(currentUser.id, updated);
+    return updated;
   }
 
   private ensureParticipant(conversation: Conversation, currentUser: any) {
