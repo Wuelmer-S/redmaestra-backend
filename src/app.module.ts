@@ -8,6 +8,7 @@ import { MaestrosModule } from './maestros/maestros.module';
 import { LocationModule } from './location/location.module';
 import { ChatModule } from './chat/chat.module';
 import { AvisosModule } from './avisos/avisos.module';
+import { RatingsModule } from './ratings/ratings.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { AvisosModule } from './avisos/avisos.module';
     LocationModule,
     ChatModule,
     AvisosModule,
+    RatingsModule,
   ],
 })
 export class AppModule {}

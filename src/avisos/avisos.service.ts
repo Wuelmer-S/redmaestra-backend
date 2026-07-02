@@ -20,7 +20,7 @@ export class AvisosService {
         ...aviso,
         userName: user?.nombre || user?.email || aviso.userName,
         userCalificacion: user?.calificacion || 0,
-        userKycStatus: user?.kycStatus || 'pending'
+        isSecCertified: user?.isSecCertified || false
       };
     }));
   }

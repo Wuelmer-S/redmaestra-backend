@@ -150,10 +150,10 @@ export class UsersService {
     const hasSec = text.includes('sec') || text.includes('superintendencia');
 
     if (hasRut && hasEspecialidad && hasSec) {
-      await this.usersRepository.update(userId, { kycStatus: 'verified', kycData: { certifiedAt: new Date().toISOString() } as any });
+      const updatedKycData = { ...(user.kycData || {}), certifiedAt: new Date().toISOString() };
+      await this.usersRepository.update(userId, { isSecCertified: true, kycData: updatedKycData as any });
       return { success: true, message: 'Certificado SEC verificado con éxito. ¡Ahora eres un Maestro Certificado!' };
     } else {
-      await this.usersRepository.update(userId, { kycStatus: 'rejected' });
       return { success: false, message: 'El certificado no es válido, no es de la SEC o no coincide con su RUT y especialidad.' };
     }
   }
