@@ -140,8 +140,11 @@ export class UsersService {
     const cleanRun = user.run ? user.run.replace(/\./g, '').toLowerCase() : '';
     const cleanText = text.replace(/\./g, '');
     
-    // Si el usuario no tiene rut en BD, tal vez podamos asumir que es valido por ahora o requerirlo
-    const hasRut = cleanRun ? cleanText.includes(cleanRun) : true;
+    let hasRut = true;
+    if (cleanRun) {
+      const cleanRunK = cleanRun.endsWith('-0') ? cleanRun.slice(0, -1) + 'k' : cleanRun;
+      hasRut = cleanText.includes(cleanRun) || cleanText.includes(cleanRunK);
+    }
     
     const hasEspecialidad = text.includes('electric') || text.includes('gásfiter') || text.includes('gasfiter');
     const hasSec = text.includes('sec') || text.includes('superintendencia');
