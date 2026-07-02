@@ -130,8 +130,10 @@ export class UsersService {
     if (!file) throw new Error('Archivo requerido');
     
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const pdfParse = require('pdf-parse');
-    const data = await pdfParse(file.buffer);
+    const { PDFParse } = require('pdf-parse');
+    const parser = new PDFParse({ data: file.buffer });
+    const data = await parser.getText();
+    await parser.destroy();
     const text = data.text.toLowerCase();
 
     const user = await this.findById(userId);
