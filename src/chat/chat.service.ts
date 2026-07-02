@@ -49,12 +49,11 @@ export class ChatService {
       return existing;
     }
 
-    const conversation = this.conversationsRepository.create({
-      clienteId: currentUser.id,
-      maestroId,
-      createdById: currentUser.id,
-      status: 'active',
-    });
+    const conversation = new Conversation();
+    conversation.clienteId = currentUser.id;
+    conversation.maestroId = maestroId;
+    conversation.createdById = currentUser.id;
+    conversation.status = 'active';
 
     const saved = await this.conversationsRepository.save(conversation);
     
