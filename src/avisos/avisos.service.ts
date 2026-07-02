@@ -24,9 +24,11 @@ export class AvisosService {
   }
 
   async create(data: Partial<Aviso>) {
-    const user = await this.usersService.findById(data.userId);
-    if (user) {
-      data.userName = user.nombre || user.email;
+    if (data.userId) {
+      const user = await this.usersService.findById(data.userId);
+      if (user) {
+        data.userName = user.nombre || user.email;
+      }
     }
     const aviso = this.avisosRepository.create(data);
     return this.avisosRepository.save(aviso);

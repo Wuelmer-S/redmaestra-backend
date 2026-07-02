@@ -61,9 +61,9 @@ export class ChatService {
     const saved = await this.conversationsRepository.save(conversation);
     
     // 🐴 ponytail: notify immediately to avoid requiring refresh
-    saved.cliente = currentUser;
-    saved.maestro = maestro;
-    this.chatGateway.notifyConversationUpdated(maestroId, this.toConversationResponse(saved));
+    saved.cliente = currentUser.role === 'cliente' ? currentUser : targetUser;
+    saved.maestro = currentUser.role === 'maestro' ? currentUser : targetUser;
+    this.chatGateway.notifyConversationUpdated(targetUserId, this.toConversationResponse(saved));
     
     return saved;
   }
