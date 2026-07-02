@@ -142,10 +142,18 @@ export class UsersService {
     const cleanRun = user.run ? user.run.replace(/[\.\-]/g, '').toLowerCase() : '';
     const cleanText = text.replace(/[\.\-]/g, '');
     
+    console.log('--- DEBUG KYC ---');
+    console.log('User RUN:', user.run);
+    console.log('Clean RUN:', cleanRun);
+    console.log('Extracted Text:', text.substring(0, 500)); // First 500 chars
+    console.log('Clean Text:', cleanText.substring(0, 500));
+    console.log('-----------------');
+
     let hasRut = true;
     if (cleanRun) {
       const cleanRunK = cleanRun.endsWith('0') ? cleanRun.slice(0, -1) + 'k' : cleanRun;
       hasRut = cleanText.includes(cleanRun) || cleanText.includes(cleanRunK);
+      console.log('hasRut result:', hasRut);
     }
     
     const hasSec = text.includes('sec') || text.includes('superintendencia');
