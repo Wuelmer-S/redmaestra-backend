@@ -26,7 +26,7 @@ export class UsersService {
  async findMaestros(): Promise<Partial<User>[]> {
   return this.usersRepository.find({
     where: { role: 'maestro' },
-    select: ['id', 'nombre', 'email', 'especialidad', 'calificacion', 'disponible', 'latitud', 'longitud'],
+    select: ['id', 'nombre', 'email', 'especialidad', 'calificacion', 'disponible', 'latitud', 'longitud', 'descripcion'],
     });
   }
 
@@ -37,7 +37,7 @@ export class UsersService {
   ): Promise<User[]> {
     const maestros = await this.usersRepository.find({
       where: { role: 'maestro', disponible: true },
-      select: ['id', 'nombre', 'email', 'especialidad', 'calificacion', 'disponible', 'latitud', 'longitud'],
+      select: ['id', 'nombre', 'email', 'especialidad', 'calificacion', 'disponible', 'latitud', 'longitud', 'descripcion'],
     });
 
     return maestros.filter((m) => {
@@ -77,6 +77,11 @@ export class UsersService {
     return this.findById(id) as Promise<User>;
   }
 
+  async updateProfile(id: string, data: Partial<User>): Promise<User> {
+    await this.usersRepository.update(id, data);
+    return this.findById(id) as Promise<User>;
+  }
+
   async createUser(
     email: string,
     password: string,
@@ -93,7 +98,31 @@ export class UsersService {
     return this.usersRepository.save(user);
   }
 
+  async findByRun(run: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { run } });
+  }
+
+  async updateKYC(id: string, run: string, kycData: any): Promise<void> {
+    await this.usersRepository.update(id, {
+      run,
+      kycStatus: 'verified',
+      kycData,
+    });
+  }
+
   async count(): Promise<number> {
     return this.usersRepository.count();
+  }
+
+  // 🐴 ponytail: EMA (Exponential Moving Average) to avoid creating a new ratings table
+  async addRating(id: string, score: number): Promise<User | null> {
+    const user = await this.findById(id);
+    if (!user) return null;
+    
+    const current = user.calificacion || 0;
+    const newRating = current === 0 ? score : (current * 4 + score) / 5;
+    
+    await this.usersRepository.update(id, { calificacion: Math.round(newRating * 10) / 10 });
+    return this.findById(id);
   }
 }
