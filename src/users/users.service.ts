@@ -139,24 +139,23 @@ export class UsersService {
     const user = await this.findById(userId);
     if (!user) throw new Error('Usuario no encontrado');
 
-    const cleanRun = user.run ? user.run.replace(/\./g, '').toLowerCase() : '';
-    const cleanText = text.replace(/\./g, '');
+    const cleanRun = user.run ? user.run.replace(/[\.\-]/g, '').toLowerCase() : '';
+    const cleanText = text.replace(/[\.\-]/g, '');
     
     let hasRut = true;
     if (cleanRun) {
-      const cleanRunK = cleanRun.endsWith('-0') ? cleanRun.slice(0, -1) + 'k' : cleanRun;
+      const cleanRunK = cleanRun.endsWith('0') ? cleanRun.slice(0, -1) + 'k' : cleanRun;
       hasRut = cleanText.includes(cleanRun) || cleanText.includes(cleanRunK);
     }
     
-    const hasEspecialidad = text.includes('electric') || text.includes('gásfiter') || text.includes('gasfiter');
     const hasSec = text.includes('sec') || text.includes('superintendencia');
 
-    if (hasRut && hasEspecialidad && hasSec) {
+    if (hasRut && hasSec) {
       const updatedKycData = { ...(user.kycData || {}), certifiedAt: new Date().toISOString() };
       await this.usersRepository.update(userId, { isSecCertified: true, kycData: updatedKycData as any });
       return { success: true, message: 'Certificado SEC verificado con éxito. ¡Ahora eres un Maestro Certificado!' };
     } else {
-      return { success: false, message: 'El certificado no es válido, no es de la SEC o no coincide con su RUT y especialidad.' };
+      return { success: false, message: 'El certificado no es válido, no es de la SEC o no coincide con su RUT.' };
     }
   }
 }
