@@ -171,6 +171,26 @@ export class ChatService {
     return updated;
   }
 
+  async markRated(id: string, userId: string) {
+    const conversation = await this.conversationsRepository.findOne({ where: { id } });
+    if (!conversation) return;
+
+    let updateData: any = {};
+    if (conversation.clienteId === userId) updateData.clienteRated = true;
+    if (conversation.maestroId === userId) updateData.maestroRated = true;
+
+    if (Object.keys(updateData).length > 0) {
+      await this.conversationsRepository.update(id, updateData);
+      
+      const updatedConv = await this.conversationsRepository.findOne({ where: { id } });
+      if (updatedConv?.clienteRated && updatedConv?.maestroRated) {
+        // Both rated, delete messages first then the conversation
+        await this.messagesRepository.delete({ conversationId: id });
+        await this.conversationsRepository.delete(id);
+      }
+    }
+  }
+
   private ensureParticipant(conversation: Conversation, currentUser: any) {
     const isParticipant =
       conversation.clienteId === currentUser.id ||

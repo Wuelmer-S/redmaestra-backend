@@ -30,6 +30,12 @@ export class Conversation {
   @Column({ default: 'active' })
   status: ConversationStatus;
 
+  @Column({ default: false })
+  clienteRated: boolean;
+
+  @Column({ default: false })
+  maestroRated: boolean;
+
   @ManyToOne(() => User, { eager: false })
   @JoinColumn({ name: 'clienteId' })
   cliente: User;

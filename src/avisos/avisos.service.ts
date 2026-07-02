@@ -14,13 +14,14 @@ export class AvisosService {
 
   async findAll() {
     const avisos = await this.avisosRepository.find({ order: { createdAt: 'DESC' } });
-    for (const aviso of avisos) {
+    return Promise.all(avisos.map(async (aviso) => {
       const user = await this.usersService.findById(aviso.userId);
-      if (user) {
-        aviso.userName = user.nombre || user.email;
-      }
-    }
-    return avisos;
+      return {
+        ...aviso,
+        userName: user?.nombre || user?.email || aviso.userName,
+        userCalificacion: user?.calificacion || 0
+      };
+    }));
   }
 
   async create(data: Partial<Aviso>) {
