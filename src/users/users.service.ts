@@ -125,4 +125,33 @@ export class UsersService {
     await this.usersRepository.update(id, { calificacion: Math.round(newRating * 10) / 10 });
     return this.findById(id);
   }
+
+  async verifyKyc(userId: string, file: any) {
+    if (!file) throw new Error('Archivo requerido');
+    
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const pdfParse = require('pdf-parse');
+    const data = await pdfParse(file.buffer);
+    const text = data.text.toLowerCase();
+
+    const user = await this.findById(userId);
+    if (!user) throw new Error('Usuario no encontrado');
+
+    const cleanRun = user.run ? user.run.replace(/\./g, '').toLowerCase() : '';
+    const cleanText = text.replace(/\./g, '');
+    
+    // Si el usuario no tiene rut en BD, tal vez podamos asumir que es valido por ahora o requerirlo
+    const hasRut = cleanRun ? cleanText.includes(cleanRun) : true;
+    
+    const hasEspecialidad = text.includes('electric') || text.includes('gásfiter') || text.includes('gasfiter');
+    const hasSec = text.includes('sec') || text.includes('superintendencia');
+
+    if (hasRut && hasEspecialidad && hasSec) {
+      await this.usersRepository.update(userId, { kycStatus: 'verified', kycData: { certifiedAt: new Date().toISOString() } as any });
+      return { success: true, message: 'Certificado SEC verificado con éxito. ¡Ahora eres un Maestro Certificado!' };
+    } else {
+      await this.usersRepository.update(userId, { kycStatus: 'rejected' });
+      return { success: false, message: 'El certificado no es válido, no es de la SEC o no coincide con su RUT y especialidad.' };
+    }
+  }
 }
