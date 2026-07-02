@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Param, Body, UseGuards, Req, BadRequestException } from '@nestjs/common';
 import { AvisosService } from './avisos.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -22,5 +22,16 @@ export class AvisosController {
       tipoServicio: body.tipoServicio,
       descripcion: body.descripcion.substring(0, 70), // Enforce 70 chars limit
     });
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  async delete(@Req() req: any, @Param('id') id: string) {
+    try {
+      await this.avisosService.delete(id, req.user.id);
+      return { success: true };
+    } catch (e) {
+      throw new BadRequestException(e.message);
+    }
   }
 }

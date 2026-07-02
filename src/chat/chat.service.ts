@@ -23,23 +23,26 @@ export class ChatService {
     private chatGateway: ChatGateway,
   ) {}
 
-  async createConversation(currentUser: any, maestroId: string) {
-    if (currentUser.role !== 'cliente') {
-      throw new ForbiddenException('Solo los clientes pueden iniciar conversaciones');
+  async createConversation(currentUser: any, targetUserId: string) {
+    if (!targetUserId) {
+      throw new BadRequestException('El targetUserId es obligatorio');
     }
 
-    if (!maestroId) {
-      throw new BadRequestException('El maestroId es obligatorio');
+    const targetUser = await this.usersService.findById(targetUserId);
+    if (!targetUser) {
+      throw new BadRequestException('El usuario destinatario no existe');
     }
 
-    const maestro = await this.usersService.findById(maestroId);
-    if (!maestro || maestro.role !== 'maestro') {
-      throw new BadRequestException('El destinatario debe ser un maestro');
+    if (currentUser.role === targetUser.role) {
+      throw new ForbiddenException('No puedes iniciar una conversación con un usuario de tu mismo rol');
     }
+
+    const clienteId = currentUser.role === 'cliente' ? currentUser.id : targetUserId;
+    const maestroId = currentUser.role === 'maestro' ? currentUser.id : targetUserId;
 
     const existing = await this.conversationsRepository.findOne({
       where: {
-        clienteId: currentUser.id,
+        clienteId,
         maestroId,
         status: 'active',
       },
@@ -50,7 +53,7 @@ export class ChatService {
     }
 
     const conversation = new Conversation();
-    conversation.clienteId = currentUser.id;
+    conversation.clienteId = clienteId;
     conversation.maestroId = maestroId;
     conversation.createdById = currentUser.id;
     conversation.status = 'active';

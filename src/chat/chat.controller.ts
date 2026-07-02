@@ -30,7 +30,7 @@ export class ChatController {
     @Req() request: AuthenticatedRequest,
     @Body() body: CreateConversationDto,
   ) {
-    return this.chatService.createConversation(request.user, body.maestroId);
+    return this.chatService.createConversation(request.user, body.targetUserId);
   }
 
   @Get('conversations')
