@@ -41,6 +41,9 @@ export class User {
   @Column({ default: 'pending', enum: ['pending', 'verified', 'rejected'] })
   kycStatus: string;
 
+  @Column({ default: false })
+  isSecCertified: boolean;
+
   @Column({ type: 'jsonb', nullable: true })
   kycData: any;
 

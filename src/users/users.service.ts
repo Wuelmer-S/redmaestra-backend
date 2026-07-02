@@ -125,4 +125,45 @@ export class UsersService {
     await this.usersRepository.update(id, { calificacion: Math.round(newRating * 10) / 10 });
     return this.findById(id);
   }
+
+  async verifyKyc(userId: string, file: any) {
+    if (!file) throw new Error('Archivo requerido');
+    
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { PDFParse } = require('pdf-parse');
+    const parser = new PDFParse({ data: file.buffer });
+    const data = await parser.getText();
+    await parser.destroy();
+    const text = data.text.toLowerCase();
+
+    const user = await this.findById(userId);
+    if (!user) throw new Error('Usuario no encontrado');
+
+    const cleanRun = user.run ? user.run.replace(/[\.\-]/g, '').toLowerCase() : '';
+    const cleanText = text.replace(/[\.\-]/g, '');
+    
+    console.log('--- DEBUG KYC ---');
+    console.log('User RUN:', user.run);
+    console.log('Clean RUN:', cleanRun);
+    console.log('Extracted Text:', text.substring(0, 500)); // First 500 chars
+    console.log('Clean Text:', cleanText.substring(0, 500));
+    console.log('-----------------');
+
+    let hasRut = true;
+    if (cleanRun) {
+      const cleanRunK = cleanRun.endsWith('0') ? cleanRun.slice(0, -1) + 'k' : cleanRun;
+      hasRut = cleanText.includes(cleanRun) || cleanText.includes(cleanRunK);
+      console.log('hasRut result:', hasRut);
+    }
+    
+    const hasSec = text.includes('sec') || text.includes('superintendencia') || text.includes('instalador') || text.includes('certificado');
+
+    if (hasRut && hasSec) {
+      const updatedKycData = { ...(user.kycData || {}), certifiedAt: new Date().toISOString() };
+      await this.usersRepository.update(userId, { isSecCertified: true, kycData: updatedKycData as any });
+      return { success: true, message: 'Certificado SEC verificado con éxito. ¡Ahora eres un Maestro Certificado!' };
+    } else {
+      return { success: false, message: 'El certificado no es válido, no es de la SEC o no coincide con su RUT.' };
+    }
+  }
 }

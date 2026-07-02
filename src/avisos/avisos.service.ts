@@ -19,7 +19,8 @@ export class AvisosService {
       return {
         ...aviso,
         userName: user?.nombre || user?.email || aviso.userName,
-        userCalificacion: user?.calificacion || 0
+        userCalificacion: user?.calificacion || 0,
+        isSecCertified: user?.isSecCertified || false
       };
     }));
   }
