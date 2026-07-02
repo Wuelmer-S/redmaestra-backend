@@ -156,7 +156,7 @@ export class UsersService {
       console.log('hasRut result:', hasRut);
     }
     
-    const hasSec = text.includes('sec') || text.includes('superintendencia');
+    const hasSec = text.includes('sec') || text.includes('superintendencia') || text.includes('instalador') || text.includes('certificado');
 
     if (hasRut && hasSec) {
       const updatedKycData = { ...(user.kycData || {}), certifiedAt: new Date().toISOString() };
