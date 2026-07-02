@@ -149,11 +149,13 @@ export class UsersService {
     console.log('Clean Text:', cleanText.substring(0, 500));
     console.log('-----------------');
 
-    let hasRut = true;
+    let hasRut = false;
     if (cleanRun) {
       const cleanRunK = cleanRun.endsWith('0') ? cleanRun.slice(0, -1) + 'k' : cleanRun;
       hasRut = cleanText.includes(cleanRun) || cleanText.includes(cleanRunK);
       console.log('hasRut result:', hasRut);
+    } else {
+      console.log('hasRut result: false (User has no RUN)');
     }
     
     const hasSec = text.includes('sec') || text.includes('superintendencia') || text.includes('instalador') || text.includes('certificado');
