@@ -18,6 +18,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(private configService: ConfigService) {}
 
   handleConnection(client: WebSocket, ...args: any[]) {
+    // 🐴 ponytail: prevent unhandled socket errors from crashing the app
+    client.on('error', (err) => console.error('WS Error:', err));
+    
     try {
       const request = args[0];
       const url = new URL(request.url, 'http://localhost');

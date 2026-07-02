@@ -113,4 +113,16 @@ export class UsersService {
   async count(): Promise<number> {
     return this.usersRepository.count();
   }
+
+  // 🐴 ponytail: EMA (Exponential Moving Average) to avoid creating a new ratings table
+  async addRating(id: string, score: number): Promise<User | null> {
+    const user = await this.findById(id);
+    if (!user) return null;
+    
+    const current = user.calificacion || 0;
+    const newRating = current === 0 ? score : (current * 4 + score) / 5;
+    
+    await this.usersRepository.update(id, { calificacion: Math.round(newRating * 10) / 10 });
+    return this.findById(id);
+  }
 }

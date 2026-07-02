@@ -56,7 +56,14 @@ export class ChatService {
       status: 'active',
     });
 
-    return this.conversationsRepository.save(conversation);
+    const saved = await this.conversationsRepository.save(conversation);
+    
+    // 🐴 ponytail: notify immediately to avoid requiring refresh
+    saved.cliente = currentUser;
+    saved.maestro = maestro;
+    this.chatGateway.notifyConversationUpdated(maestroId, this.toConversationResponse(saved));
+    
+    return saved;
   }
 
   async findMyConversations(currentUser: any) {
@@ -124,7 +131,13 @@ export class ChatService {
       updatedAt: new Date(),
     });
 
-    return saved;
+    // 🐴 ponytail: real-time notification
+    saved.sender = currentUser;
+    const formatted = this.toMessageResponse(saved);
+    const otherUserId = conversation.clienteId === currentUser.id ? conversation.maestroId : conversation.clienteId;
+    this.chatGateway.notifyNewMessage(otherUserId, formatted);
+
+    return formatted;
   }
 
   async findMessages(conversationId: string, currentUser: any) {

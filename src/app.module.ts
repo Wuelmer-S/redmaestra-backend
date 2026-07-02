@@ -7,6 +7,7 @@ import { SeedModule } from './seed/seed.module';
 import { MaestrosModule } from './maestros/maestros.module';
 import { LocationModule } from './location/location.module';
 import { ChatModule } from './chat/chat.module';
+import { AvisosModule } from './avisos/avisos.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { ChatModule } from './chat/chat.module';
     MaestrosModule,
     LocationModule,
     ChatModule,
+    AvisosModule,
   ],
 })
 export class AppModule {}
